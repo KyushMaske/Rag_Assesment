@@ -67,5 +67,5 @@ def extract_elements(file_path: str) -> List[Document]:
         return final_docs
 
     except Exception as e:
-        logger.error(f"❌ Error during PDF parsing: {str(e)}")
+        logger.error(f"Error during PDF parsing: {str(e)}")
         raise e

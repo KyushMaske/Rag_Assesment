@@ -4,35 +4,53 @@ from src.parser import extract_elements
 from src.vectorstore import get_vectorstore
 from src.engine import get_rag_chain
 
-
 def main():
     if not os.path.exists(settings.FAISS_INDEX_DIR):
-        logger.info(" FAISS Index not found. Processing PDF...")
-        docs = extract_elements(settings.PDF_PATH)
-        vectorstore = get_vectorstore(docs)
+        logger.info("FAISS Index not found. Starting PDF Ingestion...")
+        try:
+            docs = extract_elements(settings.PDF_PATH)
+            vectorstore = get_vectorstore(docs)
+        except Exception as e:
+            logger.error(f"Critical error during ingestion: {e}")
+            return
     else:
         logger.info("Loading existing FAISS Index...")
         vectorstore = get_vectorstore()
 
-    if not vectorstore:
-        logger.error("Failed to initialize vectorstore.")
-        return
-
     rag_chain = get_rag_chain(vectorstore)
+    
+    chat_history = [] 
 
-    print("\n--- Apple 10-Q Analysis System Ready ---")
+    print("\n" + "="*50)
+    print("RAG by SmartDataSolutionsLLC")
+    print("="*50)
+    print("Type 'exit' to quit. Follow-up questions are supported!")
+
     while True:
-        query = input("\nAsk a question (or 'exit'): ")
-        if query.lower() == "exit":
+        query = input("\nUser: ").strip()
+        
+        if not query:
+            continue
+        if query.lower() in ["exit", "quit", "bye"]:
+            print("Goodbye!")
             break
 
         try:
-            response = rag_chain.invoke(query)
-            print(f"\nAnswer: {response}")
-        except Exception as e:
-            logger.error(f"Error during query: {e}")
-            print("Please check  API key or logs.")
+            answer = rag_chain.invoke({
+                "input": query,
+                "chat_history": chat_history
+            })
+            print(f"\nAI: {answer}")
 
+            chat_history.append(("human", query))
+            chat_history.append(("assistant", answer))
+
+            if len(chat_history) > 10:
+                chat_history = chat_history[-10:]
+
+        except Exception as e:
+            logger.error(f"Error during inference: {e}")
+            print("\nAI: I'm sorry, I encountered an internal error. Please try again.")
 
 if __name__ == "__main__":
     main()
