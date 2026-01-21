@@ -1,6 +1,6 @@
 # RAG Pipeline
 
-A high-performance Retrieval-Augmented Generation (RAG) system designed to process complex PDF documents—including text, tables, and figures—using **LangChain**, **FAISS**, and **Groq**. 
+A high-performance Retrieval-Augmented Generation (RAG) system designed to process complex PDF documents—including text, tables, and figures using **LangChain**, **FAISS**, and **Groq**. 
 
 
 ## Features
@@ -90,5 +90,6 @@ Use this for quick testing or terminal-based interaction.
 ```bash
 uv run main.py
 ```
+<img width="4349" height="7090" alt="Design" src="https://github.com/user-attachments/assets/caac9bd3-e972-485e-b085-2d463b30bc67" />
 
 
