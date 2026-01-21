@@ -4,6 +4,7 @@ from src.parser import extract_elements
 from src.vectorstore import get_vectorstore
 from src.engine import get_rag_chain
 
+
 def main():
     if not os.path.exists(settings.FAISS_INDEX_DIR):
         logger.info("FAISS Index not found. Starting PDF Ingestion...")
@@ -18,17 +19,17 @@ def main():
         vectorstore = get_vectorstore()
 
     rag_chain = get_rag_chain(vectorstore)
-    
-    chat_history = [] 
 
-    print("\n" + "="*50)
+    chat_history = []
+
+    print("\n" + "=" * 50)
     print("RAG by SmartDataSolutionsLLC")
-    print("="*50)
+    print("=" * 50)
     print("Type 'exit' to quit. Follow-up questions are supported!")
 
     while True:
         query = input("\nUser: ").strip()
-        
+
         if not query:
             continue
         if query.lower() in ["exit", "quit", "bye"]:
@@ -36,10 +37,7 @@ def main():
             break
 
         try:
-            answer = rag_chain.invoke({
-                "input": query,
-                "chat_history": chat_history
-            })
+            answer = rag_chain.invoke({"input": query, "chat_history": chat_history})
             print(f"\nAI: {answer}")
 
             chat_history.append(("human", query))
@@ -51,6 +49,7 @@ def main():
         except Exception as e:
             logger.error(f"Error during inference: {e}")
             print("\nAI: I'm sorry, I encountered an internal error. Please try again.")
+
 
 if __name__ == "__main__":
     main()
