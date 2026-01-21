@@ -6,6 +6,7 @@ using FAISS vector database.
 """
 
 import os
+import torch
 from typing import List, Optional
 from pathlib import Path
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -17,10 +18,11 @@ from src.config import settings, logger
 
 def get_vectorstore(documents: Optional[List[Document]] = None) -> Optional[FAISS]:
 
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     try:
         embedding_func = HuggingFaceEmbeddings(
             model_name=settings.EMBEDDING_MODEL,
-            model_kwargs={"device": "cpu"},
+            model_kwargs={"device": device},
             encode_kwargs={"normalize_embeddings": True},
         )
         logger.info(f" Using embedding model: {settings.EMBEDDING_MODEL}")

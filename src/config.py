@@ -5,7 +5,7 @@ This module handles all environment variables and settings required
 for the RAG pipeline including API keys, model configurations, and paths.
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from pydantic_settings import BaseSettings
 import logging
 import tomllib
@@ -24,8 +24,8 @@ class Settings(BaseSettings):
     FAISS_INDEX_DIR: str
     PDF_PATH: str
 
-    POPPLER_PATH: str
-    TESSERACT_PATH: str
+    POPPLER_PATH: Optional[str] = None
+    TESSERACT_PATH: Optional[str] = None
     PROMPTS_FILE: str = "prompts.toml"
 
     class Config:

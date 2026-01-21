@@ -6,6 +6,8 @@ using the Unstructured library with OCR capabilities.
 """
 
 import os
+import platform
+import shutil
 import pytesseract
 from typing import List
 from pathlib import Path
@@ -16,23 +18,27 @@ from src.config import settings, logger
 
 
 def setup_ocr_environment() -> None:
+    system_os = platform.system()
 
-    tesseract_exe = Path(settings.TESSERACT_PATH) / "tesseract.exe"
-
-    if tesseract_exe.exists():
-        pytesseract.pytesseract.tesseract_cmd = str(tesseract_exe)
-        logger.info(f"Tesseract configured at: {tesseract_exe}")
+    tess_exe = shutil.which("tesseract")
+    if not tess_exe and settings.TESSERACT_PATH:
+        path_obj = Path(settings.TESSERACT_PATH)
+        potential = path_obj / ("tesseract.exe" if system_os == "Windows" else "tesseract")
+        if potential.exists(): tess_exe = str(potential)
+    
+    if tess_exe:
+        pytesseract.pytesseract.tesseract_cmd = tess_exe
+        logger.info(f"Tesseract found: {tess_exe}")
     else:
-        logger.error(f" Tesseract not found at {tesseract_exe}. OCR will fail.")
-        raise FileNotFoundError(f"Tesseract executable not found: {tesseract_exe}")
+        logger.warning("Tesseract not found. OCR-dependent PDF parsing may fail.")
 
-    poppler_path = Path(settings.POPPLER_PATH)
-    if poppler_path.exists():
-        os.environ["PATH"] += os.pathsep + str(poppler_path)
-        logger.info(f"Poppler path configured: {poppler_path}")
-    else:
-        logger.error(f"Poppler path not found at {poppler_path}")
-        raise FileNotFoundError(f"Poppler path not found: {poppler_path}")
+    if settings.POPPLER_PATH:
+        p_path = Path(settings.POPPLER_PATH)
+        if p_path.exists():
+            os.environ["PATH"] += os.pathsep + str(p_path.absolute())
+            logger.info(f"Poppler path added: {p_path}")
+    elif not shutil.which("pdftoppm"):
+        logger.warning("Poppler not found in PATH.")
 
 
 try:
