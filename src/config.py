@@ -1,6 +1,6 @@
 from pydantic_settings import BaseSettings
 import logging
-
+import tomllib
 
 class Settings(BaseSettings):
     GROQ_API_KEY: str
@@ -11,6 +11,7 @@ class Settings(BaseSettings):
 
     POPPLER_PATH: str
     TESSERACT_PATH: str
+    PROMPTS_FILE: str = "prompts.toml"
 
     class Config:
         env_file = ".env"
@@ -18,6 +19,9 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
+def load_prompts():
+    with open(settings.PROMPTS_FILE, "rb") as f:
+        return tomllib.load(f)
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
