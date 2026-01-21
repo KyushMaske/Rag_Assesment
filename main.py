@@ -1,3 +1,10 @@
+'''
+Main application file for the RAG pipeline.
+
+This script initializes the RAG chain, handles PDF ingestion,
+and manages user interactions via a command-line interface.
+'''
+
 import os
 from src.config import settings, logger
 from src.parser import extract_elements
@@ -37,8 +44,20 @@ def main():
             break
 
         try:
-            answer = rag_chain.invoke({"input": query, "chat_history": chat_history})
+            result = rag_chain.invoke({"input": query, "chat_history": chat_history})
+            
+            answer = result["answer"]
+            sources = result["source_documents"]
             print(f"\nAI: {answer}")
+            
+            if sources:
+                print(f"\n[Sources used: {len(sources)} chunks]")
+                for i, doc in enumerate(sources[:3]): # Show top 3 sources
+                    pg = doc.metadata.get("page_number", "?")
+                    dtype = doc.metadata.get("element_type", "Text")
+                    page_content = doc.page_content.replace("\n", " ")
+                    print(f" - Content: {page_content[:100]}...") 
+                    print(f" - Source {i+1}: Page {pg}")
 
             chat_history.append(("human", query))
             chat_history.append(("assistant", answer))

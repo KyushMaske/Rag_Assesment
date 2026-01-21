@@ -6,9 +6,10 @@ handling context retrieval, query contextualization, and answer generation.
 """
 
 from typing import List, Dict, Any
+from operator import itemgetter
 from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.runnables import RunnablePassthrough, RunnableLambda
+from langchain_core.runnables import RunnablePassthrough, RunnableLambda, RunnableParallel
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.documents import Document
 from src.config import settings, logger, load_prompts
@@ -103,13 +104,23 @@ def get_rag_chain(vectorstore, temperature: float = 0.1, k: int = 5):
 
             return input_dict["input"]
 
+        context_retriever = RunnableLambda(get_search_query) | retriever
+
         rag_chain = (
             RunnablePassthrough.assign(
-                context=RunnableLambda(get_search_query) | retriever | format_docs
+                docs=context_retriever
             )
-            | qa_prompt
-            | llm
-            | StrOutputParser()
+            | RunnableParallel({
+                "answer": (
+                    RunnablePassthrough.assign(
+                        context=lambda x: format_docs(x["docs"])
+                    )
+                    | qa_prompt 
+                    | llm 
+                    | StrOutputParser()
+                ),
+                "source_documents": itemgetter("docs")
+            })
         )
 
         logger.info("Conversational RAG Chain ready")
